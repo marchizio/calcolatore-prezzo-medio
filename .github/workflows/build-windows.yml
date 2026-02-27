@@ -1,0 +1,34 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Installa dipendenze
+        run: pip install pyinstaller pillow
+      - name: Converti PNG in ICO
+        run: |
+          python -c "
+          from PIL import Image
+          img = Image.open('iconaCalc.png').convert('RGBA')
+          img.save('iconaCalc.ico', format='ICO', sizes=[(16,16),(32,32),(48,48),(256,256)])
+          print('ICO creato')
+          "
+      - name: Build EXE
+        run: |
+          pyinstaller --onefile --windowed --name "Calcolatore Prezzo Medio" --icon=iconaCalc.ico calcolatore_prezzo_medio.py
+      - name: Upload artefatto
+        uses: actions/upload-artifact@v4
+        with:
+          name: Calcolatore-Prezzo-Medio-Windows
+          path: "dist/Calcolatore Prezzo Medio.exe"
+          retention-days: 30
